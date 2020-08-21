@@ -1,0 +1,477 @@
+﻿<!DOCTYPE html>
+<html ng-app="CarPoolApp">
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <title>National Car Pool</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+
+<body class="container" style="background-color:powderblue;">
+    <div ng-controller="authentController" class="container">
+        <div ng-show="!LoginSuccess">
+            <div class="text-center col-sm-3">
+                <!--Spacer Column-->
+            </div>
+            <div class="text-center col-sm-6">
+                <br>
+                <br>
+                <div>
+                    <h1>National Car Pool</h1>
+                    <h2>Login Page</h2>
+                </div>
+                <div class="panel panel-default">
+                    <form name="loginform">
+                        <div class="panel-body">
+                            <label>Enter Username: <input name="username" type="text" ng-model="username" required></label><br />
+                            <br>
+                            <label>Enter Password: <input name="password" type="password" ng-model="password" required></label><br />
+                            <br>
+                            <button class="btn btn-success" ng-click="login()">Login</button>
+                        </div>
+                    </form>
+                </div>
+                <br>
+                <br>
+                <div class="text-center col-sm-3">
+                    <!--Spacer Column-->
+                </div>
+            </div>
+        </div>
+        <!--Show nav bar on login success, e.g. LoginSuccess-->
+        <div ng-show="LoginSuccess">
+            <nav class="navbar navbar-inverse">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand">National Car Pool</a>
+                    </div>
+                        <!--Unified nav to switch between views.-->
+                        <button ng-click="showV()" class="btn btn-danger navbar-btn">Vehicles</button>
+                        <button ng-click="showB()" class="btn btn-danger navbar-btn">Bookings</button>
+                        <button ng-click="showR()" class="btn btn-danger navbar-btn">Routes</button>
+                        <button ng-click="logout()" class="btn btn-danger navbar-btn">Logout</button>
+                        <!--Search Field-->
+                        <form class="navbar-form navbar-right">
+                            <div class="form-group">
+                                <span style="color:white;">Search:  </span>
+                                <input type="text" ng-model="navSearchValue">
+                            </div>
+                        </form>
+                </div>
+            </nav>
+            <!--Welcome Message.-->
+            <strong>Welcome to National Car Pool, {{name}}.</strong>
+        </div>
+        
+
+        <div ng-controller="VehicleController" ng-show="showvehicles">
+            <div class="container-fluid">
+                <h1 class="text-center" style="color:red; font-size:80px; font-family:Bahnschrift; text-shadow:5px 5px 5px #000000;">Vehicles</h1>
+                <br>
+                <br>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+                <div class="col-lg-10">
+                    <p>Here are your current Vehicles:</p>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Capacity</th>
+                                <th>Driver</th>
+                                <th>Make</th>
+                                <th>Model</th>
+                                <th>Registration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="vehicle in vehicles | filter:navSearchValue">
+                                <td>{{vehicle.Capacity}}</td>
+                                <td>{{vehicle.Driver}}</td>
+                                <td>{{vehicle.Make}}</td>
+                                <td>{{vehicle.Model}}</td>
+                                <td>{{vehicle.Registration}}</td>
+                                <td><button class="btn btn-primary" ng-click="displaySingleVehicle(vehicle.Id)">Show just this</button></td>
+                                <td><button class="btn btn-primary" ng-click="displayVehForEdit(vehicle.Id)">Update</button></td>
+                                <td><button class="btn btn-primary" ng-click="remove(vehicle)">Remove</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-success" ng-click="showVehicleAddForm()">Add Vehicle</button>
+                    <button class="btn btn-danger" ng-click="init()">Show all</button>
+                </div>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-3">
+                <!--Spacer Column-->
+            </div>
+            <!--Add vehicle form within vehicle controller div-->
+            <div ng-show="isAdding" style="background-color:beige;" class="panel panel-default col-lg-6">
+                <form name="addVehicleForm" class="form-group" novalidate>
+                    <h2>Add Vehicle</h2>
+                    <table class="table-responsive">
+                        <tr>
+                            <td>Vehicle Capacity:</td>
+                            <td>
+                                <!--Regex for 357-->
+                                <input class="form-control" name="vechCapacity" ng-model="a" required ng-pattern="/^[357]?$/" />
+                                <span ng-show="addVehicleForm.vechCapacity.$dirty && addVehicleForm.vechCapacity.$invalid">
+                                    <span ng-show="addVehicleForm.vechCapacity.$error.required">Vehicle Capacity MUST be 3, 5 or 7.</span>
+                                    <span ng-show="addVehicleForm.vechCapacity.$error.pattern">MUST be number - 3, 5 or 7.</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Driver Name:</td>
+                            <td>
+                                <input class="form-control" name="vechDriver" ng-model="b" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addVehicleForm.vechDriver.$dirty && addVehicleForm.vechDriver.$invalid">
+                                    <span ng-show="addVehicleForm.vechDriver.$error.required">Driver's Full Name is required.</span>
+                                    <span ng-show="addVehicleForm.vechDriver.$error.pattern">Each name must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vehicle Make:</td>
+                            <td>
+                                <input class="form-control" name="vechMake" ng-model="c" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addVehicleForm.vechMake.$dirty && addVehicleForm.vechMake.$invalid">
+                                    <span ng-show="addVehicleForm.vechMake.$error.required">Vehicle Make is required.</span>
+                                    <span ng-show="addVehicleForm.vechMake.$error.pattern">Vehicle Make must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vehicle Model:</td>
+                            <td>
+                                <input class="form-control" name="vechModel" ng-model="d" required ng-pattern="/^[a-zA-Z0-9._-]+$/" />
+                                <span ng-show="addVehicleForm.vechModel.$dirty && addVehicleForm.vechModel.$invalid">
+                                    <span ng-show="addVehicleForm.vechModel.$error.required">Vehicle Model is required.</span>
+                                    <span ng-show="addVehicleForm.vechModel.$error.pattern">Vehicle Model can be letters or numbers & [. _ or -].</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vehicle Registration:</td>
+                            <td>
+                                <input class="form-control" name="vechRegistration" ng-model="e" required ng-pattern="/^[a-zA-Z0-9]+?$/" />
+                                <span ng-show="addVehicleForm.vechRegistration.$dirty && addVehicleForm.vechRegistration.$invalid">
+                                    <span ng-show="addVehicleForm.vechRegistration.$error.required">Vehicle Registration is required.</span>
+                                    <span ng-show="addVehicleForm.vechRegistration.$error.pattern">Vehicle Registration can only be a combination of letters & numbers</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                    </table>
+                    <br>
+                    <button class="btn btn-success" ng-disabled="addVehicleForm.$invalid" ng-click="addVeh()">Add</button>
+                    <button class="btn btn-danger" ng-click="cancelVehicleAddition()">Cancel</button>
+                </form>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-3">
+                <!--Spacer Column-->
+            </div>
+            <div ng-show="isUpdating" style="background-color:beige;" class="panel panel-default col-lg-6 form-group">
+                <h2>Edit Vehicle</h2>
+                <table>
+                    <tr>
+                        <td>Capacity:</td>
+                        <td><input class="form-control" ng-model="editVehCapacity" required/></td>
+                    </tr>
+                    <tr>
+                        <td>Driver Name:</td>
+                        <td><input class="form-control" ng-model="editVehDriverName" required/></td>
+                    </tr>
+                    <tr>
+                        <td>Vehicle Make:</td>
+                        <td><input class="form-control" ng-model="editVehMake" required/></td>
+                    </tr>
+                    <tr>
+                        <td>Vehicle Model:</td>
+                        <td><input class="form-control" ng-model="editVehModel" required/></td>
+                    </tr>
+                    <tr>
+                        <td>Registration:</td>
+                        <td><input class="form-control" ng-model="editVehRegistration" required/></td>
+                    </tr>
+                </table>
+
+                <button class="btn btn-success" ng-click="vehEdit()">Update</button>
+                <button class="btn btn-danger" ng-click="cancelEdit()">Cancel</button>
+            </div>
+        </div>
+
+
+        <div ng-controller="BookingController" ng-show="showbookings">
+            <div class="container-fluid">
+                <h1 class="text-center" style="color:green; font-size:80px; font-family:Bahnschrift; text-shadow:5px 5px 5px #000000;">Bookings</h1>
+                <br>
+                <br>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+                <div class="col-lg-10">
+                    <p>Here are your current Bookings:</p>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Passenger Name</th>
+                                <th>Pickup Location</th>
+                                <th>Drop Off Location</th>
+                                <th>Vehicle ID</th>
+                                <th>Current # Of Passengers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="booking in bookings | filter:navSearchValue">
+                                <td>{{booking.PassengerName}}</td>
+                                <td>{{booking.PickupLocation}}</td>
+                                <td>{{booking.DropOffLocation}}</td>
+                                <td>{{booking.VehicleId}}</td>
+                                <td>{{booking.CurrentPassenger}}</td>
+                                <td><button class="btn btn-primary" ng-click="displaySingleBooking(booking.Id)">Show just this</button></td>
+                                <td><button class="btn btn-primary" ng-click="displayBookingForEdit(booking.Id)">Add Passengers</button></td>
+                                <td><button class="btn btn-primary" ng-click="remove(booking)">Remove</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-success" ng-click="showBookingAddForm()">Add New Booking</button>
+                    <button class="btn btn-danger" ng-click="init()">Show all</button>
+                </div>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+            </div>
+            <br>
+            <br>
+            <div class="row">
+                <div class="col-lg-3">
+                    <!--Spacer Column-->
+                </div>
+                <div ng-show="isUpdating" style="background-color:beige;" class="panel panel-default col-lg-6 form-group">
+                    <h2>Edit Booking</h2>
+                    <table>
+                        <tr>
+                            <td>Current # of Passengers:</td>
+                            <td><input class="form-control" ng-model="bookCurrPassenger" required /></td>
+                        </tr>
+                        <tr>
+                            <td>Drop Off Location:</td>
+                            <td><input class="form-control" ng-model="bookDropOffLoc" required /></td>
+                        </tr>
+                        <tr>
+                            <td>Passenger Name:</td>
+                            <td><input class="form-control" ng-model="bookPassgrName" required /></td>
+                        </tr>
+                        <tr>
+                            <td>Pickup Location:</td>
+                            <td><input class="form-control" ng-model="bookPickupLoc" required /></td>
+                        </tr>
+                        <tr>
+                            <td>Vehicle ID/Reg:</td>
+                            <td><input class="form-control" ng-model="bookVehID" required /></td>
+                        </tr>
+                    </table>
+
+                    <button class="btn btn-success" ng-click="bookEdit()">Update</button>
+                    <button class="btn btn-danger" ng-click="cancelEdit()">Cancel</button>
+                </div>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-3">
+                <!--Spacer Column-->
+            </div>
+            <!--Add vehicle form within vehicle controller div-->
+            <div ng-show="isAdding" style="background-color:beige;" class="panel panel-default col-lg-6">
+                <form name="addBookingForm" class="form-group" novalidate>
+                    <h2>Add New Booking</h2>
+                    <table class="table-responsive">
+                        <tr>
+                            <td>Current # of Passengers:</td>
+                            <td>
+                                <!--Regex for 357-->
+                                <input class="form-control" name="bookCurrentPassengerNum" ng-model="a" required ng-pattern="/^[0-7]+$/" />
+                                <span ng-show="addBookingForm.bookCurrentPassengerNum.$dirty && addBookingForm.bookCurrentPassengerNum.$invalid">
+                                    <span ng-show="addBookingForm.bookCurrentPassengerNum.$error.required">Current Passenger # Required.</span>
+                                    <span ng-show="addBookingForm.bookCurrentPassengerNum.$error.pattern">MUST be number between 0-7.</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Drop Off Location:</td>
+                            <td>
+                                <input class="form-control" name="bookDropOffLocation" ng-model="b" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addBookingForm.bookDropOffLocation.$dirty && addBookingForm.bookDropOffLocation.$invalid">
+                                    <span ng-show="addBookingForm.bookDropOffLocation.$error.required">Drop off Location Required</span>
+                                    <span ng-show="addBookingForm.bookDropOffLocation.$error.pattern">Drop Off Location must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Passenger Name:</td>
+                            <td>
+                                <input class="form-control" name="bookPassengerName" ng-model="c" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addBookingForm.bookPassengerName.$dirty && addBookingForm.bookPassengerName.$invalid">
+                                    <span ng-show="addBookingForm.bookPassengerName.$error.required">Passenger Name is required.</span>
+                                    <span ng-show="addBookingForm.bookPassengerName.$error.pattern">Passenger Name must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Pickup Location:</td>
+                            <td>
+                                <input class="form-control" name="bookPickupLocation" ng-model="d" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addBookingForm.bookPickupLocation.$dirty && addBookingForm.bookPickupLocation.$invalid">
+                                    <span ng-show="addBookingForm.bookPickupLocation.$error.required">Pick Up Location Required</span>
+                                    <span ng-show="addBookingForm.bookPickupLocation.$error.pattern">Pick Up Location must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Vehicle ID/Registration:</td>
+                            <td>
+                                <input class="form-control" name="bookVehicleId" ng-model="e" required ng-pattern="/^[a-zA-Z0-9]+?$/" />
+                                <span ng-show="addBookingForm.bookVehicleId.$dirty && addBookingForm.vechRegistration.$invalid">
+                                    <span ng-show="addBookingForm.bookVehicleId.$error.required">Vehicle ID/Registration is required.</span>
+                                    <span ng-show="addBookingForm.bookVehicleId.$error.pattern">Vehicle ID/Registration can only be a combination of letters & numbers</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                    </table>
+                    <br>
+                    <button class="btn btn-success" ng-disabled="addBookingForm.$invalid" ng-click="addBooking()">Add</button>
+                    <button class="btn btn-danger" ng-click="cancelBookingAddition()">Cancel</button>
+                </form>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-3">
+                <!--Spacer Column-->
+            </div>
+        </div>
+
+
+        <div ng-controller="RouteController" ng-show="showroutes">
+            <div class="container-fluid">
+                <p class="text-center" style="color:blue; font-size:80px; font-family:Bahnschrift; text-shadow:5px 5px 5px #000000;">Routes</p>
+                <br>
+                <br>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+                <div class="col-lg-10">
+                    <p>Here are your current Routes:</p>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Route Start Point</th>
+                                <th>Route End Point</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="route in routes | filter:navSearchValue">
+                                <td>{{route.RouteStartPoint}}</td>
+                                <td>{{route.RouteEndPoint}}</td>
+                                <td><button class="btn btn-primary" ng-click="displaySingleRoute(route.Id)">Show just this</button></td>
+                                <td><button class="btn btn-primary" ng-click="remove(route)">Remove</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-success" ng-click="showRouteAddForm()">Add new Route</button>
+                    <button class="btn btn-danger" ng-click="init()">Show all</button>
+                </div>
+                <div class="col-lg-1">
+                    <!--Spacer Column-->
+                </div>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-4">
+                <!--Spacer Column-->
+            </div>
+            <!--Add route form within route controller div-->
+            <div ng-show="isAdding" style="background-color:beige;" class="panel panel-default col-lg-4">
+                <form name="addRouteForm" class="form-group" novalidate>
+                    <h2>Add Route</h2>
+                    <table class="table-responsive">
+                        <tr>
+                            <td>Route Start Point:</td>
+                            <td>
+                                <input class="form-control" name="routeStartPoint" ng-model="a" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addRouteForm.routeStartPoint.$dirty && addRouteForm.routeStartPoint.$invalid">
+                                    <span ng-show="addRouteForm.routeStartPoint.$error.required">Route Start Point destination is required</span>
+                                    <span ng-show="addRouteForm.routeStartPoint.$error.pattern">Each word must start with an upper case letter</span>
+                                </span>
+                                <br>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Route End Point:</td>
+                            <td>
+                                <input class="form-control" name="routeEndPoint" ng-model="b" required ng-pattern="/^[A-Z][a-z]+( [A-Z][a-z]+)?$/" />
+                                <span ng-show="addRouteForm.routeEndPoint.$dirty && addRouteForm.routeEndPoint.$invalid">
+                                    <span ng-show="addRouteForm.routeEndPoint.$error.required">Route End Point destination is required</span>
+                                    <span ng-show="addRouteForm.routeEndPoint.$error.pattern">Each word must start with an upper case letter</span>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    <br>
+                    <button class="btn btn-success" ng-disabled="addRouteForm.$invalid" ng-click="add()">Add</button>
+                    <button class="btn btn-danger" ng-click="cancelRouteAddition()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div ng-show="errorMessage">
+        Error = {{errorMessage | json}}
+    </div>
+
+    <!-- Footer -->
+    <footer class="container-fluid" style="margin-top:100px;">
+        <hr>
+        <!--Some nice unique css for the footer text to make it stand out a bit.-->
+        <div class="container-fluid row text-center" style="width:100%; text-shadow: 1px 1px 1px #808080;">
+            © 2019 Copyright: The A Team (Simon, Wajid, Chris)
+        </div>
+        <hr>
+    </footer>
+
+    <!--All included links to controllers, modules and app.-->
+    <script src="CarPoolApp/CarPoolApp.js"></script>
+
+    <script src="CarPoolApp/authentication/authentModule.js"></script>
+    <script src="CarPoolApp/authentication/authentController.js"></script>
+
+    <script src="CarPoolApp/Route/RouteModule.js"></script>
+    <script src="CarPoolApp/Route/RouteController.js"></script>
+
+    <script src="CarPoolApp/Booking/BookingModule.js"></script>
+    <script src="CarPoolApp/Booking/BookingController.js"></script>
+
+    <script src="CarPoolApp/Vehicle/VehicleModule.js"></script>
+    <script src="CarPoolApp/Vehicle/VehicleController.js"></script>
+
+</body>
+</html>
